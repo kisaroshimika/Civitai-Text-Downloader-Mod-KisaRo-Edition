@@ -20,6 +20,8 @@
 // @connect         image.civitai.red
 // @connect         civitai-media-uploads.sfo3.digitaloceanspaces.com
 // @license         BSD
+// @downloadURL     https://raw.githubusercontent.com/kisaroshimika/Civitai-Text-Downloader-Mod-KisaRo-Edition/main/Civitai%20Text%20Downloader%20Mod%20KisaRo%20Edition.user.js
+// @updateURL       https://raw.githubusercontent.com/kisaroshimika/Civitai-Text-Downloader-Mod-KisaRo-Edition/main/Civitai%20Text%20Downloader%20Mod%20KisaRo%20Edition.user.js
 // ==/UserScript==
 
 (function () {
