@@ -2,7 +2,7 @@
 // @name            Civitai Text Downloader Mod KisaRo Edition
 // @name:ja         Civitai Text Downloader Mod KisaRo Edition
 // @namespace       http://tampermonkey.net/
-// @version         1.0.1
+// @version         1.0.2
 // @description     Click Download button will download the file and save the JSON, images, and model description (.txt) at the same time. Also add a button to download JSON, images, and description under details.
 // @description:ja  Downloadボタンをクリックするとファイルのダウンロードと同時にJSON、画像、およびモデル説明文（.txt）が保存されます。また、Detailsの下にJSONと画像、説明文をダウンロードするボタンを追加します。
 // @author          KisaRoshimika
@@ -280,15 +280,27 @@
                 const dataUrl = URL.createObjectURL(res.response);
                 dlLink.href = dataUrl;
 
-                // URLから拡張子を推測（クエリパラメータを除去）
-                const urlWithoutQuery = image.url.split('?')[0];
-                let suffix = ".jpeg";
-                const dotIndex = urlWithoutQuery.lastIndexOf('.');
-                if (dotIndex !== -1 && dotIndex > urlWithoutQuery.lastIndexOf('/')) {
-                    suffix = "." + urlWithoutQuery.slice(dotIndex + 1).toLowerCase();
-                    if (suffix === ".jpeg") suffix = ".jpg";
-                } else if (res.response.type === "image/png") suffix = ".png";
-                else if (res.response.type === "image/webp") suffix = ".webp";
+                // BlobのMIMEタイプ（Content-Type）を優先して拡張子を決定
+                let suffix = ".jpg";
+                let typeMatched = false;
+                if (res.response && res.response.type) {
+                    if (res.response.type.includes("image/png")) { suffix = ".png"; typeMatched = true; }
+                    else if (res.response.type.includes("image/webp")) { suffix = ".webp"; typeMatched = true; }
+                    else if (res.response.type.includes("image/jpeg")) { suffix = ".jpg"; typeMatched = true; }
+                    else if (res.response.type.includes("image/gif")) { suffix = ".gif"; typeMatched = true; }
+                }
+                
+                // MIMEタイプで特定できない場合はURLから推測
+                if (!typeMatched) {
+                    const urlWithoutQuery = image.url.split('?')[0];
+                    const dotIndex = urlWithoutQuery.lastIndexOf('.');
+                    if (dotIndex !== -1 && dotIndex > urlWithoutQuery.lastIndexOf('/')) {
+                        const ext = urlWithoutQuery.slice(dotIndex + 1).toLowerCase();
+                        if (ext === "png") suffix = ".png";
+                        else if (ext === "webp") suffix = ".webp";
+                        else if (ext === "gif") suffix = ".gif";
+                    }
+                }
 
                 const imageName = filename.replace(/\.json$/i, suffix);
                 dlLink.download = imageName;
