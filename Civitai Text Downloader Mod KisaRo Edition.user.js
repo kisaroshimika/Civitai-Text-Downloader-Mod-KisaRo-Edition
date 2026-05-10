@@ -2,13 +2,10 @@
 // @name            Civitai Text Downloader Mod KisaRo Edition
 // @name:ja         Civitai Text Downloader Mod KisaRo Edition
 // @namespace       http://tampermonkey.net/
-// @version         1.0.0
+// @version         1.0.1
 // @description     Click Download button will download the file and save the JSON, images, and model description (.txt) at the same time. Also add a button to download JSON, images, and description under details.
 // @description:ja  Downloadボタンをクリックするとファイルのダウンロードと同時にJSON、画像、およびモデル説明文（.txt）が保存されます。また、Detailsの下にJSONと画像、説明文をダウンロードするボタンを追加します。
 // @author          KisaRoshimika
-//
-// Original author: Takenoko3333
-// Modified from Civitai Text Downloader Mod
 // @match           https://civitai.com/*
 // @match           https://civitai.red/*
 // @icon            https://civitai.com/favicon.ico
@@ -23,6 +20,9 @@
 // @downloadURL     https://raw.githubusercontent.com/kisaroshimika/Civitai-Text-Downloader-Mod-KisaRo-Edition/main/Civitai%20Text%20Downloader%20Mod%20KisaRo%20Edition.user.js
 // @updateURL       https://raw.githubusercontent.com/kisaroshimika/Civitai-Text-Downloader-Mod-KisaRo-Edition/main/Civitai%20Text%20Downloader%20Mod%20KisaRo%20Edition.user.js
 // ==/UserScript==
+//
+// Original author: Takenoko3333
+// Modified from Civitai Text Downloader Mod
 
 (function () {
     'use strict';
@@ -141,6 +141,15 @@
     function safeFind(arr, predicate) {
         return Array.isArray(arr) ? arr.find(predicate) : undefined;
     }
+
+    function getPrimaryFile(modelVersion) {
+        if (!modelVersion || !Array.isArray(modelVersion.files) || modelVersion.files.length === 0) return null;
+        const primaryFile = modelVersion.files.find(f => f.primary === true);
+        if (primaryFile) return primaryFile;
+        const modelFile = modelVersion.files.find(f => f.type === "Model");
+        if (modelFile) return modelFile;
+        return modelVersion.files[0];
+    }
     // ---------- END PATCH ----------
 
     GM.addStyle(".ctd-button:not([data-disabled]) { color: #ffff00; }");
@@ -241,7 +250,8 @@
                 return;
             }
 
-            let filename = (firstOrNull(file.files) && firstOrNull(file.files).name) || (file_id + ".json");
+            const primaryFile = getPrimaryFile(file);
+            let filename = (primaryFile && primaryFile.name) || (file_id + ".json");
             filename = filename.replace(/\.[a-z]*$/i, ".json");
 
             const text = [JSON.stringify(j)];
@@ -396,7 +406,8 @@
 
                         const jsonPayload = [JSON.stringify(text, null, 2)];
                         link.href = window.URL.createObjectURL(new Blob(jsonPayload));
-                        let filename = (firstOrNull(file.files) && firstOrNull(file.files).name) || (current_file_id + ".json");
+                        const primaryFile = getPrimaryFile(file);
+                        let filename = (primaryFile && primaryFile.name) || (current_file_id + ".json");
                         filename = filename.replace(/\.[a-z]*$/i, ".json");
                         link.download = filename;
                         link.click();
